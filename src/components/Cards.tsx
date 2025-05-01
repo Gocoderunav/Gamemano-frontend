@@ -359,6 +359,5 @@ export default Cards;
 
 
 
-// new polishing
 
 

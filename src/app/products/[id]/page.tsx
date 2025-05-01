@@ -89,10 +89,55 @@
 
 
 
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import { useParams } from 'next/navigation';
+
+// import GameHeroSection from '@/components/gameDetails/GameHeroSection';
+// import ChampionSection from '@/components/gameDetails/ChampionSection';
+// import ArenasCard from '@/components/gameDetails/ArenasCard';
+// import ReviewCarousel from '@/components/gameDetails/ReviewCarousel';
+// import StartLegendSection from '@/components/gameDetails/StartLegendSection';
+// import GamesRecommended from '@/components/gameDetails/GamesRecommended';
+
+// export default function GameDetailPage() {
+//   const { id } = useParams();
+//   const [product, setProduct] = useState<any>(null);
+
+//   useEffect(() => {
+//     if (id) {
+//       fetch(`https://dummyjson.com/products/${id}`)
+//         .then((res) => res.json())
+//         .then((data) => setProduct(data));
+//     }
+//   }, [id]);
+
+//   if (!product) {
+//     return <div className="text-white p-8">Loading...</div>;
+//   }
+
+//   return (
+//     <div className="bg-[#0F0F0F] overflow-x-hidden">
+//       {/* Left border applied here */}
+//       <div className="border-l border-white/20 pl-6">
+//         <GameHeroSection product={product} />
+//         <ChampionSection />
+//         <ArenasCard />
+//         <ReviewCarousel reviews={product.reviews} />
+//         <StartLegendSection price={product.price} />
+//         <GamesRecommended />
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import GameHeroSection from '@/components/gameDetails/GameHeroSection';
 import ChampionSection from '@/components/gameDetails/ChampionSection';
@@ -103,23 +148,36 @@ import GamesRecommended from '@/components/gameDetails/GamesRecommended';
 
 export default function GameDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [product, setProduct] = useState<any>(null);
+  const [isAllowed, setIsAllowed] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+
+    if (!isLoggedIn) {
+      // Save the redirect path and go to signup first
+      localStorage.setItem('redirectAfterLogin', `/products/${id}`);
+      router.push('/signup');
+    } else {
+      setIsAllowed(true);
+    }
+  }, [id, router]);
+
+  useEffect(() => {
+    if (id && isAllowed) {
       fetch(`https://dummyjson.com/products/${id}`)
         .then((res) => res.json())
         .then((data) => setProduct(data));
     }
-  }, [id]);
+  }, [id, isAllowed]);
 
-  if (!product) {
+  if (!isAllowed || !product) {
     return <div className="text-white p-8">Loading...</div>;
   }
 
   return (
     <div className="bg-[#0F0F0F] overflow-x-hidden">
-      {/* Left border applied here */}
       <div className="border-l border-white/20 pl-6">
         <GameHeroSection product={product} />
         <ChampionSection />
